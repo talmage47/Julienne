@@ -35,7 +35,10 @@ Julienne is a recipe management app that treats recipes as living documents: sca
 - `yield: Int` (base portions)
 - `parentRecipeID: UUID?` (for variations)
 - `variationName: String?` (e.g. "Low-fat")
-- `ownerID` (CloudKit user)
+- `ownerID` (CloudKit user — owner of *this* record's zone)
+- `sourceRecipeID: UUID?` (provenance: the recipe this was copied from when added to someone else's shared collection)
+- `sourceOwnerID: String?` (provenance: original record's owner)
+- `copiedAt: Date?` (when the duplication happened)
 - `createdAt`, `modifiedAt`
 
 ### Ingredient
@@ -68,23 +71,37 @@ Julienne is a recipe management app that treats recipes as living documents: sca
 
 ### CloudKit Sharing Strategy
 
-The hard requirement is: *a recipe should appear in a shared collection AND a private one without duplication*.
+**Chosen approach: duplicate-on-add with provenance metadata.**
 
-Two options:
+CloudKit constraints that drive this:
+- A CKRecord lives in exactly one user's zone — there is no true "co-owned" record
+- `CKShare` lets multiple participants read/write a single record, but the owner is fixed and the record can't simultaneously exist in another user's private DB
+- A record can only have one parent share, so cross-membership in multiple shared collections via parent-chain is out
 
-**Option A — Share recipes individually; collections are just ID lists.**
-- Each recipe is its own shareable root
-- Collections contain `[recipeID]` references
-- Sharing a "collection" with someone = iterating recipes and CKShare-ing each
-- Pro: a recipe can belong to any number of collections (shared or private) without copy
-- Con: sharing UX is many-records-at-once under the hood
+Model:
+- Each shared collection is a `CKShare` rooted on the collection record, owned by whichever user created it
+- Recipes inside that shared collection are child records under the same share, living in the owner's zone
+- When user B "adds" one of their own recipes to user A's shared collection, the app **copies** B's recipe into A's zone as a new record. The copy carries provenance:
+  - `sourceRecipeID` = original recipe id in B's zone
+  - `sourceOwnerID` = B's CloudKit user id
+  - `copiedAt` = timestamp
+- B's original recipe stays in B's private library, untouched
+- Edits to the copy do not propagate back to the source (and vice versa) — same trust model as "fork on edit"
 
-**Option B — Share the collection as parent record, recipes as children.**
-- Cleaner sharing UX
-- But a CKRecord can only have one parent share — so a recipe can't simultaneously live in a shared collection and a private one
-- Conflicts with the core requirement
+Why this is acceptable:
+- Single-owner zones keep the offline-first / SwiftData + CloudKit model simple
+- Provenance fields unlock future features without changing the schema:
+  - "Pull updates from original" when source `modifiedAt` is newer than `copiedAt`
+  - "Show contributor" attribution in the shared collection UI
+  - "Detach copy" / "Re-link to source" tooling
+- Avoids the reference-based alternative, which gets ugly fast: cross-zone refs are fragile, break on share revoke, and CloudKit doesn't resolve them across users' private DBs
 
-**Recommended:** start with Option A. Spike CKShare on a single recipe early to validate UX flows (invite, accept, revoke).
+Tradeoffs accepted:
+- Storage duplication (acceptable — recipes are small)
+- Edits don't auto-sync between source and copy
+- Two users in the same shared collection adding "the same" external recipe will produce two unlinked records — dedupe is a future polish
+
+**Early spike:** stand up a single shared collection with one recipe, validate the invite / accept / revoke / leave flows, and confirm the copy-on-add path round-trips cleanly before building UI on top.
 
 ### Git-like Variations
 
@@ -138,12 +155,13 @@ Avoid building real diff/merge for MVP. Model:
 
 ## Open Questions / Risks
 
-1. **CKShare semantics** for recipes referenced by multiple collections — needs an early spike
+1. **CKShare semantics** for the duplicate-on-add flow — early spike to confirm invite/accept/revoke and copy round-trip
 2. **Conflict resolution** when two forks of a shared recipe both edit — defer to "fork on edit" model for now
-3. **Pantry tracking** — defer, but be aware the data model may want a `Pantry` entity later
-4. **SwiftData + CloudKit sharing maturity** — may need to drop to raw CloudKit for shares
-5. **Live Activity budget** — Apple limits active Live Activities; fine for a single cooking session
-6. **Recipe import** (from URL, paste, photo) — not in scope yet, but data model should not preclude
+3. **Cross-collection dedupe** — when two members add the same external recipe to a shared collection, they'll create unlinked copies; revisit once usage patterns are clearer
+4. **Pantry tracking** — defer, but be aware the data model may want a `Pantry` entity later
+5. **SwiftData + CloudKit sharing maturity** — may need to drop to raw CloudKit for shares
+6. **Live Activity budget** — Apple limits active Live Activities; fine for a single cooking session
+7. **Recipe import** (from URL, paste, photo) — not in scope yet, but data model should not preclude
 
 ---
 

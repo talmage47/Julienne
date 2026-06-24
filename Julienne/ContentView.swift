@@ -1,24 +1,23 @@
-//
-//  ContentView.swift
-//  Julienne
-//
-//  Created by Talmage Gaisford on 6/10/26.
-//
-
+import SwiftData
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView {
+            Tab("Collections", systemImage: "folder") {
+                CollectionsRootView()
+            }
+            Tab("Plan", systemImage: "calendar") {
+                PlanRootView()
+            }
+            Tab("Search", systemImage: "magnifyingglass", role: .search) {
+                SearchRootView()
+            }
         }
-        .padding()
     }
 }
 
 #Preview {
     ContentView()
+        .modelContainer(PreviewSupport.container())
 }

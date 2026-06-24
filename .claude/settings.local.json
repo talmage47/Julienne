@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xcrun simctl *)",
+      "Bash(xcodebuild -project Julienne.xcodeproj -scheme Julienne -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5' -configuration Debug build)",
+      "Bash(xcodebuild -project /Users/talmage/Code/Julienne/Julienne.xcodeproj -scheme Julienne -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5' -configuration Debug build)"
+    ]
+  }
+}

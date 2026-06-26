@@ -14,6 +14,7 @@ struct JulienneApp: App {
                 RecipeCollection.self
             )
         } catch {
+            print("ModelContainer failed: \(error)")
             fatalError("Failed to create ModelContainer: \(error)")
         }
     }
@@ -25,3 +26,4 @@ struct JulienneApp: App {
         .modelContainer(container)
     }
 }
+

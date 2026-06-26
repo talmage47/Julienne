@@ -3,7 +3,10 @@
     "allow": [
       "Bash(xcrun simctl *)",
       "Bash(xcodebuild -project Julienne.xcodeproj -scheme Julienne -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5' -configuration Debug build)",
-      "Bash(xcodebuild -project /Users/talmage/Code/Julienne/Julienne.xcodeproj -scheme Julienne -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5' -configuration Debug build)"
+      "Bash(xcodebuild -project /Users/talmage/Code/Julienne/Julienne.xcodeproj -scheme Julienne -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5' -configuration Debug build)",
+      "Bash(codesign -d --entitlements - --xml /Users/talmage/Library/Developer/Xcode/DerivedData/Julienne-eytlhqgkdesltmabdodhxqmzygjr/Build/Products/Debug-iphoneos/Julienne.app)",
+      "Bash(plutil -p /Users/talmage/Library/Developer/Xcode/DerivedData/Julienne-eytlhqgkdesltmabdodhxqmzygjr/Build/Products/Debug-iphoneos/Julienne.app/Info.plist)",
+      "Bash(otool -L /Users/talmage/Library/Developer/Xcode/DerivedData/Julienne-eytlhqgkdesltmabdodhxqmzygjr/Build/Products/Debug-iphoneos/Julienne.app/Julienne)"
     ]
   }
 }

@@ -17,6 +17,9 @@ final class Recipe {
     var sourceOwnerID: String? = nil
     var copiedAt: Date? = nil
 
+    var imageData: Data? = nil
+    var isPinned: Bool = false
+
     @Relationship(deleteRule: .cascade, inverse: \Ingredient.recipe)
     var ingredients: [Ingredient]? = []
 

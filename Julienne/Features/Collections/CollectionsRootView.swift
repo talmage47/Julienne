@@ -10,48 +10,30 @@ struct CollectionsRootView: View {
     @State private var newCollectionName = ""
     @State private var showingSettings = false
 
+    private var pinnedRecipes: [Recipe] {
+        allRecipes.filter { $0.isPinned }.sorted { $0.title < $1.title }
+    }
+
+    private var sharedRecipes: [Recipe] {
+        allRecipes.filter { $0.sourceOwnerID != nil }.sorted { $0.title < $1.title }
+    }
+
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    NavigationLink {
-                        AllRecipesView()
-                    } label: {
-                        Label {
-                            VStack(alignment: .leading) {
-                                Text("All Recipes").font(.body)
-                                Text("\(allRecipes.count) recipes")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        } icon: {
-                            Image(systemName: "tray.full")
-                        }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 28) {
+                    if !pinnedRecipes.isEmpty {
+                        horizontalSection(title: "Pinned", recipes: pinnedRecipes)
                     }
-                }
-
-                Section("Collections") {
-                    if collections.isEmpty {
-                        Text("No collections yet")
-                            .foregroundStyle(.secondary)
-                    } else {
-                        ForEach(collections) { collection in
-                            NavigationLink {
-                                CollectionDetailView(collection: collection)
-                            } label: {
-                                VStack(alignment: .leading) {
-                                    Text(collection.name)
-                                    Text("\(collection.recipeCount) recipes")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                        .onDelete(perform: deleteCollections)
+                    if !sharedRecipes.isEmpty {
+                        horizontalSection(title: "Shared", recipes: sharedRecipes)
                     }
+                    collectionsSection
                 }
+                .padding(.vertical)
             }
-            .navigationTitle("Julienne")
+            .background(Color.black.ignoresSafeArea())
+            .navigationTitle("Collections")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
@@ -81,17 +63,119 @@ struct CollectionsRootView: View {
         }
     }
 
+    // MARK: - Sections
+
+    private func horizontalSection(title: String, recipes: [Recipe]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(title)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .top, spacing: 12) {
+                    ForEach(recipes) { recipe in
+                        NavigationLink {
+                            RecipeDetailView(recipe: recipe)
+                        } label: {
+                            RecipeSquircle(recipe: recipe)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+
+    private var collectionsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Collections")
+
+            VStack(spacing: 0) {
+                NavigationLink {
+                    AllRecipesView()
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "tray.full.fill")
+                            .font(.title3)
+                            .frame(width: 44, height: 44)
+                            .background(Color.gray.opacity(0.25))
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("All Recipes")
+                                .foregroundStyle(.white)
+                            Text("\(allRecipes.count) recipes")
+                                .font(.caption)
+                                .foregroundStyle(.gray)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.gray)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
+                if collections.isEmpty {
+                    Text("No collections yet")
+                        .foregroundStyle(.gray)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                } else {
+                    ForEach(collections) { collection in
+                        NavigationLink {
+                            CollectionDetailView(collection: collection)
+                        } label: {
+                            collectionRow(collection)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+
+    private func collectionRow(_ collection: RecipeCollection) -> some View {
+        HStack(spacing: 12) {
+            RecipeThumbnail(recipe: collection.recipes?.first)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(collection.name)
+                    .foregroundStyle(.white)
+                Text("\(collection.recipeCount) recipes")
+                    .font(.caption)
+                    .foregroundStyle(.gray)
+            }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.gray)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .contentShape(Rectangle())
+    }
+
+    private func sectionHeader(_ title: String) -> some View {
+        HStack(spacing: 6) {
+            Text(title)
+                .font(.title.bold())
+                .foregroundStyle(.white)
+            Image(systemName: "chevron.right")
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(.gray)
+            Spacer()
+        }
+        .padding(.horizontal)
+    }
+
+    // MARK: - Actions
+
     private func createCollection() {
         let name = newCollectionName.trimmingCharacters(in: .whitespaces)
         guard !name.isEmpty else { return }
         let collection = RecipeCollection(name: name)
         context.insert(collection)
-    }
-
-    private func deleteCollections(at offsets: IndexSet) {
-        for index in offsets {
-            context.delete(collections[index])
-        }
     }
 }
 

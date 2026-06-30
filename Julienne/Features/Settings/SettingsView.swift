@@ -174,58 +174,7 @@ struct SettingsView: View {
 
     #if DEBUG
     private func loadSampleData() {
-        let pasta = Recipe(title: "Pasta al Limone", yield: 4, notes: "Bright and quick.")
-        pasta.ingredients = [
-            Ingredient(name: "Spaghetti", amount: 400, unit: .grams, sortOrder: 0),
-            Ingredient(name: "Lemons", amount: 2, unit: .count, sortOrder: 1),
-            Ingredient(name: "Parmesan", amount: 100, unit: .grams, sortOrder: 2),
-            Ingredient(name: "Olive oil", amount: 60, unit: .milliliters, sortOrder: 3),
-        ]
-        pasta.steps = [
-            RecipeStep(text: "Boil salted water; cook pasta to al dente.", sortOrder: 0),
-            RecipeStep(text: "Zest and juice the lemons.", sortOrder: 1),
-            RecipeStep(text: "Toss pasta with oil, juice, zest, and cheese.", sortOrder: 2),
-        ]
-
-        let soup = Recipe(title: "Tomato Soup", yield: 6, notes: "Weeknight comfort.")
-        soup.ingredients = [
-            Ingredient(name: "Tomatoes", amount: 1.5, unit: .kilograms, sortOrder: 0),
-            Ingredient(name: "Onion", amount: 1, unit: .count, sortOrder: 1),
-            Ingredient(name: "Garlic", amount: 3, unit: .count, sortOrder: 2),
-            Ingredient(name: "Cream", amount: 200, unit: .milliliters, sortOrder: 3),
-        ]
-        soup.steps = [
-            RecipeStep(text: "Sauté onion and garlic until soft.", sortOrder: 0),
-            RecipeStep(text: "Add tomatoes and simmer 25 minutes.", sortOrder: 1),
-            RecipeStep(text: "Blend smooth and stir in cream.", sortOrder: 2),
-        ]
-
-        let cookies = Recipe(title: "Chocolate Chip Cookies", yield: 24)
-        cookies.ingredients = [
-            Ingredient(name: "Butter", amount: 225, unit: .grams, sortOrder: 0),
-            Ingredient(name: "Brown sugar", amount: 200, unit: .grams, sortOrder: 1),
-            Ingredient(name: "Sugar", amount: 100, unit: .grams, sortOrder: 2),
-            Ingredient(name: "Eggs", amount: 2, unit: .count, sortOrder: 3),
-            Ingredient(name: "Flour", amount: 350, unit: .grams, sortOrder: 4),
-            Ingredient(name: "Chocolate chips", amount: 300, unit: .grams, sortOrder: 5),
-        ]
-        cookies.steps = [
-            RecipeStep(text: "Cream butter and sugars.", sortOrder: 0),
-            RecipeStep(text: "Beat in eggs, then flour.", sortOrder: 1),
-            RecipeStep(text: "Fold in chips. Bake 12 min at 180°C.", sortOrder: 2),
-        ]
-
-        let weeknights = RecipeCollection(name: "Weeknights")
-        weeknights.recipes = [pasta, soup]
-
-        let baking = RecipeCollection(name: "Baking")
-        baking.recipes = [cookies]
-
-        context.insert(pasta)
-        context.insert(soup)
-        context.insert(cookies)
-        context.insert(weeknights)
-        context.insert(baking)
+        MockData.seed(into: context)
     }
 
     private func wipeAllData() {

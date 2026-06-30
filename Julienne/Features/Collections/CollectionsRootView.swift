@@ -98,4 +98,5 @@ struct CollectionsRootView: View {
 #Preview {
     CollectionsRootView()
         .modelContainer(PreviewSupport.container())
+        .environment(AppSettings.shared)
 }

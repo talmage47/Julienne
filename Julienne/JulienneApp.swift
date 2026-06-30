@@ -22,6 +22,7 @@ struct JulienneApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(AppSettings.shared)
         }
         .modelContainer(container)
     }

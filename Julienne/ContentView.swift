@@ -2,6 +2,8 @@ import SwiftData
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(AppSettings.self) private var settings
+
     var body: some View {
         TabView {
             Tab("Collections", systemImage: "folder") {
@@ -14,10 +16,12 @@ struct ContentView: View {
                 SearchRootView()
             }
         }
+        .tint(settings.accentColor)
     }
 }
 
 #Preview {
     ContentView()
         .modelContainer(PreviewSupport.container())
+        .environment(AppSettings.shared)
 }

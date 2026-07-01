@@ -25,6 +25,7 @@ enum RecipeUnit: String, Codable, CaseIterable, Identifiable, Sendable {
     case kilograms
     case ounces
     case pounds
+    case poundsOunces
 
     case milliliters
     case liters
@@ -42,7 +43,7 @@ enum RecipeUnit: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var kind: MeasurementKind {
         switch self {
-        case .grams, .kilograms, .ounces, .pounds:
+        case .grams, .kilograms, .ounces, .pounds, .poundsOunces:
             .mass
         case .milliliters, .liters, .teaspoons, .tablespoons, .cups, .fluidOunces, .pints, .quarts, .gallons:
             .volume
@@ -55,11 +56,16 @@ enum RecipeUnit: String, Codable, CaseIterable, Identifiable, Sendable {
         switch self {
         case .grams, .kilograms, .milliliters, .liters:
             .metric
-        case .ounces, .pounds, .teaspoons, .tablespoons, .cups, .fluidOunces, .pints, .quarts, .gallons:
+        case .ounces, .pounds, .poundsOunces, .teaspoons, .tablespoons, .cups, .fluidOunces, .pints, .quarts, .gallons:
             .imperial
         case .count:
             nil
         }
+    }
+
+    /// True when the unit exists only for on-the-fly display and can't be selected as an ingredient's stored unit.
+    var isDisplayOnly: Bool {
+        self == .poundsOunces
     }
 
     /// Multiplier from this unit to its kind's canonical unit (g for mass, ml for volume, count for count).
@@ -69,6 +75,7 @@ enum RecipeUnit: String, Codable, CaseIterable, Identifiable, Sendable {
         case .kilograms: 1000
         case .ounces: 28.3495
         case .pounds: 453.592
+        case .poundsOunces: 453.592
         case .milliliters: 1
         case .liters: 1000
         case .teaspoons: 4.92892
@@ -82,31 +89,36 @@ enum RecipeUnit: String, Codable, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    var shortLabel: String {
+    /// Full-word unit name that agrees in number with the given amount. Used for inline display like "3 pounds" or "1 cup".
+    func fullName(for amount: Double) -> String {
+        let singular = abs(amount - 1) < 0.0001
         switch self {
-        case .grams: "g"
-        case .kilograms: "kg"
-        case .ounces: "oz"
-        case .pounds: "lb"
-        case .milliliters: "ml"
-        case .liters: "L"
-        case .teaspoons: "tsp"
-        case .tablespoons: "tbsp"
-        case .cups: "cup"
-        case .fluidOunces: "fl oz"
-        case .pints: "pt"
-        case .quarts: "qt"
-        case .gallons: "gal"
-        case .count: ""
+        case .grams: return singular ? "gram" : "grams"
+        case .kilograms: return singular ? "kilogram" : "kilograms"
+        case .ounces: return singular ? "ounce" : "ounces"
+        case .pounds: return singular ? "pound" : "pounds"
+        case .poundsOunces: return "pounds & ounces"
+        case .milliliters: return singular ? "milliliter" : "milliliters"
+        case .liters: return singular ? "liter" : "liters"
+        case .teaspoons: return singular ? "teaspoon" : "teaspoons"
+        case .tablespoons: return singular ? "tablespoon" : "tablespoons"
+        case .cups: return singular ? "cup" : "cups"
+        case .fluidOunces: return singular ? "fluid ounce" : "fluid ounces"
+        case .pints: return singular ? "pint" : "pints"
+        case .quarts: return singular ? "quart" : "quarts"
+        case .gallons: return singular ? "gallon" : "gallons"
+        case .count: return "count"
         }
     }
 
-    var longLabel: String {
+    /// Menu label used in pickers.
+    var menuLabel: String {
         switch self {
         case .grams: "Grams"
         case .kilograms: "Kilograms"
         case .ounces: "Ounces"
         case .pounds: "Pounds"
+        case .poundsOunces: "Pounds & Ounces"
         case .milliliters: "Milliliters"
         case .liters: "Liters"
         case .teaspoons: "Teaspoons"
@@ -119,6 +131,8 @@ enum RecipeUnit: String, Codable, CaseIterable, Identifiable, Sendable {
         case .count: "Count"
         }
     }
+
+    static let editableCases: [RecipeUnit] = allCases.filter { !$0.isDisplayOnly }
 
     static func allCases(for kind: MeasurementKind) -> [RecipeUnit] {
         RecipeUnit.allCases.filter { $0.kind == kind }
@@ -175,7 +189,6 @@ enum AmountFormatter {
 
     static func string(_ quantity: Quantity) -> String {
         let amount = string(quantity.amount)
-        let label = quantity.unit.shortLabel
-        return label.isEmpty ? amount : "\(amount) \(label)"
+        return "\(amount) \(quantity.unit.fullName(for: quantity.amount))"
     }
 }

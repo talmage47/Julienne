@@ -114,21 +114,104 @@ private struct IngredientRow: View {
     let scale: Double
     let system: UnitSystem
 
+    @State private var override: RecipeUnit?
+
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text(displayAmount)
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-                .frame(minWidth: 80, alignment: .leading)
             Text(ingredient.name)
-            Spacer()
+            Spacer(minLength: 12)
+            unitControl
+        }
+        .onAppear {
+            if override == nil {
+                override = IngredientDisplayUnit.read(for: ingredient.id)
+            }
         }
     }
 
-    private var displayAmount: String {
-        let scaled = Quantity(amount: ingredient.amount * scale, unit: ingredient.unit)
-        let display = ingredient.unit.kind == .count ? scaled : scaled.displayed(in: system)
-        return AmountFormatter.string(display)
+    @ViewBuilder
+    private var unitControl: some View {
+        let options = RecipeUnit.allCases(for: ingredient.unit.kind)
+        if options.count <= 1 {
+            Text(displayString)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+        } else {
+            Menu {
+                ForEach(options) { unit in
+                    Button(unit.menuLabel) {
+                        override = unit
+                        IngredientDisplayUnit.write(unit, for: ingredient.id)
+                    }
+                }
+            } label: {
+                ZStack(alignment: .trailing) {
+                    HStack(spacing: 4) {
+                        Text(widestPlaceholder(among: options))
+                            .monospacedDigit()
+                        Image(systemName: "chevron.down")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .hidden()
+
+                    HStack(spacing: 4) {
+                        Text(displayString)
+                            .monospacedDigit()
+                            .foregroundStyle(.white)
+                        Image(systemName: "chevron.down")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.gray)
+                    }
+                }
+            }
+        }
+    }
+
+    private var displayUnit: RecipeUnit {
+        if let override { return override }
+        if ingredient.unit.kind == .count { return .count }
+        let base = Quantity(amount: ingredient.amount, unit: ingredient.unit)
+        return base.displayed(in: system).unit
+    }
+
+    private var displayString: String {
+        let canonical = ingredient.amount * scale * ingredient.unit.toCanonical
+        if displayUnit == .poundsOunces {
+            return poundsOuncesLabel(fromGrams: canonical)
+        }
+        let converted = canonical / displayUnit.toCanonical
+        return "\(AmountFormatter.string(converted)) \(displayUnit.fullName(for: converted))"
+    }
+
+    private func widestPlaceholder(among options: [RecipeUnit]) -> String {
+        options.map { unit -> String in
+            let canonical = ingredient.amount * scale * ingredient.unit.toCanonical
+            if unit == .poundsOunces {
+                return poundsOuncesLabel(fromGrams: canonical)
+            }
+            let converted = canonical / unit.toCanonical
+            return "\(AmountFormatter.string(converted)) \(unit.fullName(for: converted))"
+        }
+        .max(by: { $0.count < $1.count }) ?? displayString
+    }
+
+    private func poundsOuncesLabel(fromGrams grams: Double) -> String {
+        let totalOunces = grams / 28.3495
+        if totalOunces < 1 {
+            let ozName = totalOunces == 1 ? "ounce" : "ounces"
+            return "\(AmountFormatter.string(totalOunces)) \(ozName)"
+        }
+        var pounds = Int((totalOunces / 16).rounded(.down))
+        var ounces = Int((totalOunces - Double(pounds) * 16).rounded())
+        if ounces == 16 {
+            pounds += 1
+            ounces = 0
+        }
+        let lbName = pounds == 1 ? "pound" : "pounds"
+        let ozName = ounces == 1 ? "ounce" : "ounces"
+        if pounds == 0 { return "\(ounces) \(ozName)" }
+        if ounces == 0 { return "\(pounds) \(lbName)" }
+        return "\(pounds) \(lbName) \(ounces) \(ozName)"
     }
 }
 

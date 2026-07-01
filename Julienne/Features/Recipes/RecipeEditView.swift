@@ -208,8 +208,8 @@ private struct IngredientEditRow: View {
                     .keyboardType(.decimalPad)
                     #endif
                 Picker("Unit", selection: $ingredient.unit) {
-                    ForEach(RecipeUnit.allCases) { unit in
-                        Text(unit.longLabel).tag(unit)
+                    ForEach(RecipeUnit.editableCases) { unit in
+                        Text(unit.menuLabel).tag(unit)
                     }
                 }
                 .labelsHidden()

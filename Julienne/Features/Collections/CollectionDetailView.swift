@@ -27,6 +27,11 @@ struct CollectionDetailView: View {
                     } label: {
                         RecipeRow(recipe: recipe)
                     }
+                    .contextMenu {
+                        PinToggleButton(isPinned: recipe.isPinned) {
+                            recipe.isPinned.toggle()
+                        }
+                    }
                 }
                 .onDelete { offsets in
                     let toRemove = offsets.map { recipes[$0] }

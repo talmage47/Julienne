@@ -51,14 +51,50 @@ struct RecipeSquircle: View {
     var size: CGFloat = 175
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
+        SquircleBase(title: recipe.title, size: size) {
             RecipeBackground(recipe: recipe, emojiSize: 72)
+        }
+    }
+}
+
+struct CollectionSquircle: View {
+    let collection: RecipeCollection
+    var size: CGFloat = 175
+
+    private var coverRecipe: Recipe? {
+        (collection.recipes ?? []).sorted { $0.title < $1.title }.first
+    }
+
+    var body: some View {
+        SquircleBase(title: collection.name, size: size) {
+            if let coverRecipe {
+                RecipeBackground(recipe: coverRecipe, emojiSize: 72)
+            } else {
+                ZStack {
+                    Color.gray.opacity(0.25)
+                    Image(systemName: "folder.fill")
+                        .font(.system(size: 44))
+                        .foregroundStyle(.gray)
+                }
+            }
+        }
+    }
+}
+
+private struct SquircleBase<Background: View>: View {
+    let title: String
+    let size: CGFloat
+    @ViewBuilder let background: () -> Background
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            background()
             LinearGradient(
                 colors: [.clear, .black.opacity(0.55)],
                 startPoint: .center,
                 endPoint: .bottom
             )
-            Text(recipe.title.isEmpty ? "Untitled" : recipe.title)
+            Text(title.isEmpty ? "Untitled" : title)
                 .font(.headline)
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.leading)

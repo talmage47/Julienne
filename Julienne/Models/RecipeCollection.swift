@@ -6,6 +6,7 @@ final class RecipeCollection {
     var id: UUID = UUID()
     var name: String = ""
     var createdAt: Date = Date()
+    var isPinned: Bool = false
 
     var recipes: [Recipe]? = []
 

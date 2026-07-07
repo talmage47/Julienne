@@ -14,6 +14,14 @@ struct CollectionsRootView: View {
         allRecipes.filter { $0.isPinned }.sorted { $0.title < $1.title }
     }
 
+    private var pinnedCollections: [RecipeCollection] {
+        collections.filter { $0.isPinned }.sorted { $0.name < $1.name }
+    }
+
+    private var hasPinnedItems: Bool {
+        !pinnedRecipes.isEmpty || !pinnedCollections.isEmpty
+    }
+
     private var sharedRecipes: [Recipe] {
         allRecipes.filter { $0.sourceOwnerID != nil }.sorted { $0.title < $1.title }
     }
@@ -22,8 +30,8 @@ struct CollectionsRootView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
-                    if !pinnedRecipes.isEmpty {
-                        horizontalSection(title: "Pinned", recipes: pinnedRecipes)
+                    if hasPinnedItems {
+                        pinnedSection
                     }
                     if !sharedRecipes.isEmpty {
                         horizontalSection(title: "Shared", recipes: sharedRecipes)
@@ -77,9 +85,53 @@ struct CollectionsRootView: View {
                             RecipeSquircle(recipe: recipe)
                         }
                         .buttonStyle(.plain)
+                        .contextMenu {
+                            PinToggleButton(isPinned: recipe.isPinned) {
+                                recipe.isPinned.toggle()
+                            }
+                        }
                     }
                 }
                 .padding(.horizontal)
+                .padding(.vertical, 16)
+            }
+        }
+    }
+
+    private var pinnedSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Pinned")
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .top, spacing: 12) {
+                    ForEach(pinnedCollections) { collection in
+                        NavigationLink {
+                            CollectionDetailView(collection: collection)
+                        } label: {
+                            CollectionSquircle(collection: collection)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            PinToggleButton(isPinned: collection.isPinned) {
+                                collection.isPinned.toggle()
+                            }
+                        }
+                    }
+                    ForEach(pinnedRecipes) { recipe in
+                        NavigationLink {
+                            RecipeDetailView(recipe: recipe)
+                        } label: {
+                            RecipeSquircle(recipe: recipe)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            PinToggleButton(isPinned: recipe.isPinned) {
+                                recipe.isPinned.toggle()
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 16)
             }
         }
     }
@@ -130,6 +182,11 @@ struct CollectionsRootView: View {
                             collectionRow(collection)
                         }
                         .buttonStyle(.plain)
+                        .contextMenu {
+                            PinToggleButton(isPinned: collection.isPinned) {
+                                collection.isPinned.toggle()
+                            }
+                        }
                     }
                 }
             }
@@ -147,6 +204,11 @@ struct CollectionsRootView: View {
                     .foregroundStyle(.gray)
             }
             Spacer()
+            if collection.isPinned {
+                Image(systemName: "pin.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
             Image(systemName: "chevron.right")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.gray)

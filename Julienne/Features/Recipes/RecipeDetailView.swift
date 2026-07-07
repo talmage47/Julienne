@@ -50,6 +50,14 @@ struct RecipeDetailView: View {
         .toolbarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
+                Button {
+                    recipe.isPinned.toggle()
+                } label: {
+                    Image(systemName: recipe.isPinned ? "pin.fill" : "pin")
+                }
+                .accessibilityLabel(recipe.isPinned ? "Unpin recipe" : "Pin recipe")
+            }
+            ToolbarItem(placement: .primaryAction) {
                 Button("Edit") { showingEdit = true }
             }
         }

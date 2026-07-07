@@ -21,6 +21,11 @@ struct AllRecipesView: View {
                     } label: {
                         RecipeRow(recipe: recipe)
                     }
+                    .contextMenu {
+                        PinToggleButton(isPinned: recipe.isPinned) {
+                            recipe.isPinned.toggle()
+                        }
+                    }
                 }
                 .onDelete(perform: deleteRecipes)
             }
@@ -53,14 +58,34 @@ struct RecipeRow: View {
     let recipe: Recipe
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(recipe.title.isEmpty ? "Untitled" : recipe.title)
-                .font(.body)
-            Text("Serves \(recipe.yield) · \(recipe.orderedIngredients.count) ingredients")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+        HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(recipe.title.isEmpty ? "Untitled" : recipe.title)
+                    .font(.body)
+                Text("Serves \(recipe.yield) · \(recipe.orderedIngredients.count) ingredients")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            if recipe.isPinned {
+                Spacer(minLength: 0)
+                Image(systemName: "pin.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
         }
         .padding(.vertical, 2)
+    }
+}
+
+struct PinToggleButton: View {
+    let isPinned: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Label(isPinned ? "Unpin" : "Pin",
+                  systemImage: isPinned ? "pin.slash" : "pin")
+        }
     }
 }
 

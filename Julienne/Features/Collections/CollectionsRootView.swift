@@ -29,7 +29,7 @@ struct CollectionsRootView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 28) {
+                VStack(alignment: .leading, spacing: 12) {
                     if hasPinnedItems {
                         pinnedSection
                     }
@@ -74,7 +74,7 @@ struct CollectionsRootView: View {
     // MARK: - Sections
 
     private var sharedSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             navigableSectionHeader("Shared") {
                 SharedItemsView()
             }
@@ -95,13 +95,13 @@ struct CollectionsRootView: View {
                     }
                 }
                 .padding(.horizontal)
-                .padding(.vertical, 16)
+                .padding(.vertical, 8)
             }
         }
     }
 
     private var pinnedSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             navigableSectionHeader("Pinned") {
                 PinnedItemsView()
             }
@@ -135,7 +135,7 @@ struct CollectionsRootView: View {
                     }
                 }
                 .padding(.horizontal)
-                .padding(.vertical, 16)
+                .padding(.vertical, 8)
             }
         }
     }
@@ -143,7 +143,7 @@ struct CollectionsRootView: View {
     private static let compactSquircleSize: CGFloat = 117
 
     private var collectionsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             sectionHeader("Collections")
 
             VStack(spacing: 0) {

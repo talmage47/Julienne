@@ -34,7 +34,7 @@ struct CollectionsRootView: View {
                         pinnedSection
                     }
                     if !sharedRecipes.isEmpty {
-                        horizontalSection(title: "Shared", recipes: sharedRecipes)
+                        sharedSection
                     }
                     collectionsSection
                 }
@@ -73,16 +73,18 @@ struct CollectionsRootView: View {
 
     // MARK: - Sections
 
-    private func horizontalSection(title: String, recipes: [Recipe]) -> some View {
+    private var sharedSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title)
+            navigableSectionHeader("Shared") {
+                SharedItemsView()
+            }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 12) {
-                    ForEach(recipes) { recipe in
+                    ForEach(sharedRecipes) { recipe in
                         NavigationLink {
                             RecipeDetailView(recipe: recipe)
                         } label: {
-                            RecipeSquircle(recipe: recipe)
+                            RecipeSquircle(recipe: recipe, size: Self.compactSquircleSize)
                         }
                         .buttonStyle(.plain)
                         .contextMenu {
@@ -100,14 +102,16 @@ struct CollectionsRootView: View {
 
     private var pinnedSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader("Pinned")
+            navigableSectionHeader("Pinned") {
+                PinnedItemsView()
+            }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 12) {
                     ForEach(pinnedCollections) { collection in
                         NavigationLink {
                             CollectionDetailView(collection: collection)
                         } label: {
-                            CollectionSquircle(collection: collection)
+                            CollectionSquircle(collection: collection, size: Self.compactSquircleSize)
                         }
                         .buttonStyle(.plain)
                         .contextMenu {
@@ -120,7 +124,7 @@ struct CollectionsRootView: View {
                         NavigationLink {
                             RecipeDetailView(recipe: recipe)
                         } label: {
-                            RecipeSquircle(recipe: recipe)
+                            RecipeSquircle(recipe: recipe, size: Self.compactSquircleSize)
                         }
                         .buttonStyle(.plain)
                         .contextMenu {
@@ -135,6 +139,8 @@ struct CollectionsRootView: View {
             }
         }
     }
+
+    private static let compactSquircleSize: CGFloat = 117
 
     private var collectionsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -229,6 +235,17 @@ struct CollectionsRootView: View {
             Spacer()
         }
         .padding(.horizontal)
+    }
+
+    private func navigableSectionHeader<Destination: View>(
+        _ title: String,
+        @ViewBuilder destination: @escaping () -> Destination
+    ) -> some View {
+        NavigationLink(destination: destination) {
+            sectionHeader(title)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Actions

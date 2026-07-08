@@ -48,7 +48,7 @@ private enum RecipePalette {
 
 struct RecipeSquircle: View {
     let recipe: Recipe
-    var size: CGFloat = 175
+    var size: CGFloat? = 175
 
     var body: some View {
         SquircleBase(title: recipe.title, size: size) {
@@ -59,7 +59,7 @@ struct RecipeSquircle: View {
 
 struct CollectionSquircle: View {
     let collection: RecipeCollection
-    var size: CGFloat = 175
+    var size: CGFloat? = 175
 
     private var coverRecipe: Recipe? {
         (collection.recipes ?? []).sorted { $0.title < $1.title }.first
@@ -83,7 +83,7 @@ struct CollectionSquircle: View {
 
 private struct SquircleBase<Background: View>: View {
     let title: String
-    let size: CGFloat
+    let size: CGFloat?
     @ViewBuilder let background: () -> Background
 
     var body: some View {
@@ -102,8 +102,20 @@ private struct SquircleBase<Background: View>: View {
                 .padding(12)
                 .shadow(color: .black.opacity(0.4), radius: 3)
         }
-        .frame(width: size, height: size)
+        .modifier(SquircleSize(size: size))
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+}
+
+private struct SquircleSize: ViewModifier {
+    let size: CGFloat?
+
+    func body(content: Content) -> some View {
+        if let size {
+            content.frame(width: size, height: size)
+        } else {
+            content.aspectRatio(1, contentMode: .fit)
+        }
     }
 }
 

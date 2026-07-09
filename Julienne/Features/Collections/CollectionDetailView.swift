@@ -29,7 +29,7 @@ struct CollectionDetailView: View {
                     }
                     .contextMenu {
                         PinToggleButton(isPinned: recipe.isPinned) {
-                            recipe.isPinned.toggle()
+                            PinOrdering.togglePin(recipe, in: context)
                         }
                     }
                 }

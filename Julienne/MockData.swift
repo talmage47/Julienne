@@ -6,6 +6,7 @@ enum MockData {
     static func seed(into context: ModelContext) {
         let pasta = Recipe(title: "Pasta al Limone", yield: 4, notes: "Bright and quick.")
         pasta.isPinned = true
+        pasta.pinOrder = 0
         pasta.ingredients = [
             Ingredient(name: "Spaghetti", amount: 400, unit: .grams, sortOrder: 0),
             Ingredient(name: "Lemons", amount: 2, unit: .count, sortOrder: 1),
@@ -20,6 +21,7 @@ enum MockData {
 
         let soup = Recipe(title: "Tomato Soup", yield: 6, notes: "Weeknight comfort.")
         soup.isPinned = true
+        soup.pinOrder = 1
         soup.ingredients = [
             Ingredient(name: "Tomatoes", amount: 1.5, unit: .kilograms, sortOrder: 0),
             Ingredient(name: "Onion", amount: 1, unit: .count, sortOrder: 1),
@@ -34,6 +36,7 @@ enum MockData {
 
         let cookies = Recipe(title: "Chocolate Chip Cookies", yield: 24)
         cookies.isPinned = true
+        cookies.pinOrder = 2
         cookies.ingredients = [
             Ingredient(name: "Butter", amount: 225, unit: .grams, sortOrder: 0),
             Ingredient(name: "Brown sugar", amount: 200, unit: .grams, sortOrder: 1),
@@ -112,6 +115,7 @@ enum MockData {
 
         let ramen = Recipe(title: "Weeknight Miso Ramen", yield: 2)
         ramen.sourceOwnerID = "friend-alex"
+        ramen.sharedOrder = 0
         ramen.sourceRecipeID = UUID()
         ramen.copiedAt = Date()
         ramen.ingredients = [
@@ -127,6 +131,7 @@ enum MockData {
 
         let pizza = Recipe(title: "Friday Night Pizza", yield: 2)
         pizza.sourceOwnerID = "friend-jules"
+        pizza.sharedOrder = 1
         pizza.sourceRecipeID = UUID()
         pizza.copiedAt = Date()
         pizza.ingredients = [

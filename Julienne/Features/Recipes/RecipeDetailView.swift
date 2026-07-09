@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct RecipeDetailView: View {
+    @Environment(\.modelContext) private var context
     @Bindable var recipe: Recipe
     @UnitSystemPreference private var unitSystem
 
@@ -51,7 +52,7 @@ struct RecipeDetailView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    recipe.isPinned.toggle()
+                    PinOrdering.togglePin(recipe, in: context)
                 } label: {
                     Image(systemName: recipe.isPinned ? "pin.fill" : "pin")
                 }

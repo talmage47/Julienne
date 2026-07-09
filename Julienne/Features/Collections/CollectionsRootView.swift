@@ -10,20 +10,24 @@ struct CollectionsRootView: View {
     @State private var newCollectionName = ""
     @State private var showingSettings = false
 
-    private var pinnedRecipes: [Recipe] {
-        allRecipes.filter { $0.isPinned }.sorted { $0.title < $1.title }
-    }
-
-    private var pinnedCollections: [RecipeCollection] {
-        collections.filter { $0.isPinned }.sorted { $0.name < $1.name }
+    private var pinnedItems: [PinnedItem] {
+        let cs = collections.filter { $0.isPinned }.map(PinnedItem.collection)
+        let rs = allRecipes.filter { $0.isPinned }.map(PinnedItem.recipe)
+        return (cs + rs).sorted { a, b in
+            if a.pinOrder != b.pinOrder { return a.pinOrder < b.pinOrder }
+            return a.sortKey < b.sortKey
+        }
     }
 
     private var hasPinnedItems: Bool {
-        !pinnedRecipes.isEmpty || !pinnedCollections.isEmpty
+        !pinnedItems.isEmpty
     }
 
     private var sharedRecipes: [Recipe] {
-        allRecipes.filter { $0.sourceOwnerID != nil }.sorted { $0.title < $1.title }
+        allRecipes.filter { $0.sourceOwnerID != nil }.sorted { a, b in
+            if a.sharedOrder != b.sharedOrder { return a.sharedOrder < b.sharedOrder }
+            return a.title < b.title
+        }
     }
 
     var body: some View {
@@ -79,24 +83,40 @@ struct CollectionsRootView: View {
                 SharedItemsView()
             }
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 12) {
+                HStack(alignment: .top, spacing: 0) {
                     ForEach(sharedRecipes) { recipe in
-                        NavigationLink {
-                            RecipeDetailView(recipe: recipe)
-                        } label: {
-                            RecipeSquircle(recipe: recipe, size: Self.compactSquircleSize)
-                        }
-                        .buttonStyle(.plain)
-                        .contextMenu {
-                            PinToggleButton(isPinned: recipe.isPinned) {
-                                recipe.isPinned.toggle()
-                            }
-                        }
+                        sharedCell(recipe)
                     }
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 10)
                 .padding(.vertical, 8)
+                .animation(.spring(response: 0.35, dampingFraction: 0.78), value: sharedRecipes.map(\.id))
             }
+        }
+    }
+
+    private func sharedCell(_ recipe: Recipe) -> some View {
+        let id = recipe.id.uuidString
+        return NavigationLink {
+            RecipeDetailView(recipe: recipe)
+        } label: {
+            RecipeSquircle(recipe: recipe, size: Self.compactSquircleSize)
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            PinToggleButton(isPinned: recipe.isPinned) {
+                PinOrdering.togglePin(recipe, in: context)
+            }
+        }
+        .draggable(id) {
+            RecipeSquircle(recipe: recipe, size: Self.compactSquircleSize)
+        }
+        .padding(.horizontal, 6)
+        .contentShape(Rectangle())
+        .dropDestination(for: String.self) { dropped, _ in
+            guard let src = dropped.first, src != id else { return false }
+            PinOrdering.reorderShared(sourceID: src, targetID: id, in: sharedRecipes)
+            return true
         }
     }
 
@@ -106,36 +126,64 @@ struct CollectionsRootView: View {
                 PinnedItemsView()
             }
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 12) {
-                    ForEach(pinnedCollections) { collection in
-                        NavigationLink {
-                            CollectionDetailView(collection: collection)
-                        } label: {
-                            CollectionSquircle(collection: collection, size: Self.compactSquircleSize)
-                        }
-                        .buttonStyle(.plain)
-                        .contextMenu {
-                            PinToggleButton(isPinned: collection.isPinned) {
-                                collection.isPinned.toggle()
-                            }
-                        }
-                    }
-                    ForEach(pinnedRecipes) { recipe in
-                        NavigationLink {
-                            RecipeDetailView(recipe: recipe)
-                        } label: {
-                            RecipeSquircle(recipe: recipe, size: Self.compactSquircleSize)
-                        }
-                        .buttonStyle(.plain)
-                        .contextMenu {
-                            PinToggleButton(isPinned: recipe.isPinned) {
-                                recipe.isPinned.toggle()
-                            }
-                        }
+                HStack(alignment: .top, spacing: 0) {
+                    ForEach(pinnedItems) { item in
+                        pinnedCell(item)
                     }
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 10)
                 .padding(.vertical, 8)
+                .animation(.spring(response: 0.35, dampingFraction: 0.78), value: pinnedItems.map(\.id))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func pinnedCell(_ item: PinnedItem) -> some View {
+        switch item {
+        case .collection(let collection):
+            NavigationLink {
+                CollectionDetailView(collection: collection)
+            } label: {
+                CollectionSquircle(collection: collection, size: Self.compactSquircleSize)
+            }
+            .buttonStyle(.plain)
+            .contextMenu {
+                PinToggleButton(isPinned: collection.isPinned) {
+                    PinOrdering.togglePin(collection, in: context)
+                }
+            }
+            .draggable(item.id) {
+                CollectionSquircle(collection: collection, size: Self.compactSquircleSize)
+            }
+            .padding(.horizontal, 6)
+            .contentShape(Rectangle())
+            .dropDestination(for: String.self) { dropped, _ in
+                guard let src = dropped.first, src != item.id else { return false }
+                PinOrdering.reorderPinned(sourceID: src, targetID: item.id, in: pinnedItems)
+                return true
+            }
+        case .recipe(let recipe):
+            NavigationLink {
+                RecipeDetailView(recipe: recipe)
+            } label: {
+                RecipeSquircle(recipe: recipe, size: Self.compactSquircleSize)
+            }
+            .buttonStyle(.plain)
+            .contextMenu {
+                PinToggleButton(isPinned: recipe.isPinned) {
+                    PinOrdering.togglePin(recipe, in: context)
+                }
+            }
+            .draggable(item.id) {
+                RecipeSquircle(recipe: recipe, size: Self.compactSquircleSize)
+            }
+            .padding(.horizontal, 6)
+            .contentShape(Rectangle())
+            .dropDestination(for: String.self) { dropped, _ in
+                guard let src = dropped.first, src != item.id else { return false }
+                PinOrdering.reorderPinned(sourceID: src, targetID: item.id, in: pinnedItems)
+                return true
             }
         }
     }
@@ -190,7 +238,7 @@ struct CollectionsRootView: View {
                         .buttonStyle(.plain)
                         .contextMenu {
                             PinToggleButton(isPinned: collection.isPinned) {
-                                collection.isPinned.toggle()
+                                PinOrdering.togglePin(collection, in: context)
                             }
                         }
                     }

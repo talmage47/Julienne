@@ -7,6 +7,7 @@ final class RecipeCollection {
     var name: String = ""
     var createdAt: Date = Date()
     var isPinned: Bool = false
+    var pinOrder: Int = 0
 
     var recipes: [Recipe]? = []
 

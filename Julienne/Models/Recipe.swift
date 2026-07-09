@@ -19,6 +19,8 @@ final class Recipe {
 
     var imageData: Data? = nil
     var isPinned: Bool = false
+    var pinOrder: Int = 0
+    var sharedOrder: Int = 0
 
     @Relationship(deleteRule: .cascade, inverse: \Ingredient.recipe)
     var ingredients: [Ingredient]? = []

@@ -9,6 +9,7 @@ struct PlanRootView: View {
                 description: Text("Weekly meal planning lands in Phase 2.")
             )
             .navigationTitle("Plan")
+            .settingsToolbar()
         }
     }
 }

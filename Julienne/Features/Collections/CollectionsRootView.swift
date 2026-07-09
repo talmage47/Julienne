@@ -8,7 +8,6 @@ struct CollectionsRootView: View {
 
     @State private var showingNewCollection = false
     @State private var newCollectionName = ""
-    @State private var showingSettings = false
     @State private var showingNewRecipe = false
 
     private var pinnedRecipes: [Recipe] {
@@ -44,13 +43,6 @@ struct CollectionsRootView: View {
             .background(Color.black.ignoresSafeArea())
             .navigationTitle("Collections")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button {
-                        showingSettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
-                    }
-                }
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button {
@@ -69,14 +61,12 @@ struct CollectionsRootView: View {
                     }
                 }
             }
+            .settingsToolbar()
             .alert("New Collection", isPresented: $showingNewCollection) {
                 TextField("Name", text: $newCollectionName)
                 Button("Cancel", role: .cancel) {}
                 Button("Create") { createCollection() }
                     .disabled(newCollectionName.trimmingCharacters(in: .whitespaces).isEmpty)
-            }
-            .sheet(isPresented: $showingSettings) {
-                SettingsView()
             }
             .sheet(isPresented: $showingNewRecipe) {
                 NavigationStack {

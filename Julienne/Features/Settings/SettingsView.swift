@@ -21,7 +21,6 @@ struct SettingsView: View {
                 backgroundColor.ignoresSafeArea()
 
                 List {
-                    unitsSection(settings: settings)
                     appearanceSection(settings: settings)
                     dataSection
                     #if DEBUG
@@ -52,28 +51,6 @@ struct SettingsView: View {
     }
 
     // MARK: - Sections
-
-    private func unitsSection(settings: AppSettings) -> some View {
-        Section {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Unit System")
-                    .font(.subheadline)
-                    .foregroundStyle(.gray)
-                Picker("Unit System", selection: Binding(
-                    get: { settings.unitSystem },
-                    set: { settings.unitSystem = $0 }
-                )) {
-                    Text("Imperial (lbs)").tag(UnitSystem.imperial)
-                    Text("Metric (kg)").tag(UnitSystem.metric)
-                }
-                .pickerStyle(.segmented)
-            }
-            .padding(.vertical, 4)
-            .listRowBackground(rowColor)
-        } header: {
-            Text("Units").foregroundStyle(.gray)
-        }
-    }
 
     private func appearanceSection(settings: AppSettings) -> some View {
         Section {
@@ -195,4 +172,30 @@ struct SettingsView: View {
     SettingsView()
         .environment(AppSettings.shared)
         .modelContainer(PreviewSupport.container())
+}
+
+private struct SettingsToolbarModifier: ViewModifier {
+    @State private var showingSettings = false
+
+    func body(content: Content) -> some View {
+        content
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
+            }
+    }
+}
+
+extension View {
+    func settingsToolbar() -> some View {
+        modifier(SettingsToolbarModifier())
+    }
 }

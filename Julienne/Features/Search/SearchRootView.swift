@@ -32,6 +32,7 @@ struct SearchRootView: View {
             }
             .navigationTitle("Search")
             .searchable(text: $query, prompt: "Recipes or ingredients")
+            .settingsToolbar()
         }
     }
 }

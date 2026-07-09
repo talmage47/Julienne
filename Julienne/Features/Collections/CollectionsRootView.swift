@@ -9,6 +9,7 @@ struct CollectionsRootView: View {
     @State private var showingNewCollection = false
     @State private var newCollectionName = ""
     @State private var showingSettings = false
+    @State private var showingNewRecipe = false
 
     private var pinnedRecipes: [Recipe] {
         allRecipes.filter { $0.isPinned }.sorted { $0.title < $1.title }
@@ -51,9 +52,18 @@ struct CollectionsRootView: View {
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        newCollectionName = ""
-                        showingNewCollection = true
+                    Menu {
+                        Button {
+                            showingNewRecipe = true
+                        } label: {
+                            Label("New Recipe", systemImage: "square.and.pencil")
+                        }
+                        Button {
+                            newCollectionName = ""
+                            showingNewCollection = true
+                        } label: {
+                            Label("New Collection", systemImage: "folder.badge.plus")
+                        }
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -67,6 +77,11 @@ struct CollectionsRootView: View {
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
+            }
+            .sheet(isPresented: $showingNewRecipe) {
+                NavigationStack {
+                    RecipeEditView(mode: .create)
+                }
             }
         }
     }

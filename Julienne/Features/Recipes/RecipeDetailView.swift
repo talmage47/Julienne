@@ -3,6 +3,7 @@ import SwiftUI
 
 struct RecipeDetailView: View {
     @Bindable var recipe: Recipe
+    @Environment(CookingSession.self) private var cookingSession
     @UnitSystemPreference private var unitSystem
 
     @State private var scale: Double = 1.0
@@ -16,6 +17,20 @@ struct RecipeDetailView: View {
         Form {
             Section {
                 ScaleControl(scale: $scale, baseYield: recipe.yield, portions: portions)
+            }
+
+            if !recipe.orderedSteps.isEmpty {
+                Section {
+                    Button {
+                        cookingSession.start(recipe: recipe, scale: scale)
+                    } label: {
+                        Label("Start Cooking", systemImage: "flame.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                }
             }
 
             if !recipe.orderedIngredients.isEmpty {
@@ -229,4 +244,5 @@ private struct IngredientRow: View {
         let recipe = (try? context.fetch(FetchDescriptor<Recipe>()))?.first ?? Recipe(title: "Sample", yield: 2)
         RecipeDetailView(recipe: recipe)
     }
+    .environment(CookingSession())
 }

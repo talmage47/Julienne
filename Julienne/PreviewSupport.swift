@@ -12,6 +12,7 @@ enum PreviewSupport {
                 Ingredient.self,
                 RecipeStep.self,
                 RecipeCollection.self,
+                MealPlanEntry.self,
                 configurations: config
             )
         } catch {

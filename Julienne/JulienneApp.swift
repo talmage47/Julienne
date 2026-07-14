@@ -4,6 +4,7 @@ import SwiftUI
 @main
 struct JulienneApp: App {
     let container: ModelContainer
+    @State private var cookingSession = CookingSession()
 
     init() {
         do {
@@ -11,7 +12,8 @@ struct JulienneApp: App {
                 for: Recipe.self,
                 Ingredient.self,
                 RecipeStep.self,
-                RecipeCollection.self
+                RecipeCollection.self,
+                MealPlanEntry.self
             )
         } catch {
             print("ModelContainer failed: \(error)")
@@ -23,6 +25,7 @@ struct JulienneApp: App {
         WindowGroup {
             ContentView()
                 .environment(AppSettings.shared)
+                .environment(cookingSession)
         }
         .modelContainer(container)
     }
